@@ -1,6 +1,7 @@
 import datetime
 import os
 import arcpy
+import shutil
 
 class new_project:
 
@@ -55,6 +56,20 @@ class new_project:
         proj_aprx.updateDatabases(db, True)
         proj_aprx.save()
 
+    def update_toolbox_connections(self):
+        proj_aprx = arcpy.mp.ArcGISProject(self.output_aprx)
+        new_toolbox_name = self.name + ".atbx"
+        new_toolbox = {'toolboxPath': os.path.join(self.location, new_toolbox_name), 'isDefaultToolbox': True}
+        toolboxes = proj_aprx.toolboxes
+        toolboxes.append(new_toolbox)
+        shutil.copyfile(os.path.join(new_project.template_dir, "Default.atbx"), os.path.join(self.location, new_toolbox_name))
+        print (toolboxes)
+        for d in toolboxes:
+            if d["toolboxPath"] != os.path.join(self.location, new_toolbox_name):
+                toolboxes.remove(d)
+        proj_aprx.updateToolboxes(toolboxes, True)
+        proj_aprx.save()
+
     def create_project_aprx(self):
         aprx_file_name = str(self.name).replace(" ", "_") + ".aprx"
         self.output_aprx = os.path.join(self.location, aprx_file_name)
@@ -69,11 +84,16 @@ class new_project:
         proj_aprx.saveACopy(self.output_aprx)
         self.update_database_connections()
         self.update_folder_connections()
+        self.update_toolbox_connections()
         print("Aprx Configured {}".format(self.output_aprx))
         print("Aprx Created")
 
+    def exec_create_project(self):
+        self.create_project_folder()
+        self.create_geodatabase()
+        self.create_project_aprx()
+
 if __name__ == '__main__':
-    create_project = new_project("test_project2")
-    create_project.create_project_folder()
-    create_project.create_geodatabase()
-    create_project.create_project_aprx()
+    project_name = input("Enter Project Name: ").replace(" ", "_")
+    create_project = new_project(project_name)
+    create_project.exec_create_project()
