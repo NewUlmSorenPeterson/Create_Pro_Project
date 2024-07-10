@@ -2,6 +2,7 @@ import datetime
 import os
 import arcpy
 import shutil
+import json
 
 class new_project:
 
@@ -10,11 +11,21 @@ class new_project:
     current_year = datetime.date.today().strftime("%Y")
 
     def __init__(self, project_name):
+        new_project.import_variables()
         self.name = project_name
         self.location = os.path.join(new_project.base_directory, new_project.current_year, project_name)
         self.output_aprx = ""
         self.output_gdb = ""
         print("Job Created")
+
+    def import_variables():
+        replace_strings = {"file:" : "", "/": '\\'}
+        with open(os.path.join(os.path.dirname(__file__), "variables.json")) as json_file:
+            data = json.load(json_file)
+        json_base_directory = data["variables"]["base_directory"]
+        for k, j in replace_strings.items():
+            json_base_directory = json_base_directory.replace(k, j)
+        new_project.base_directory = json_base_directory
 
     def create_project_folder(self):
         if not os.path.exists(self.location):
@@ -48,8 +59,9 @@ class new_project:
     def update_database_connections(self):
         proj_aprx = arcpy.mp.ArcGISProject(self.output_aprx)
         db = proj_aprx.databases
+        print(db)
         for d in db:
-            print(d["databasePath"])
+            print(self.output_gdb)
             if d["databasePath"] != self.output_gdb:
                 db.remove(d)
         print(db)
