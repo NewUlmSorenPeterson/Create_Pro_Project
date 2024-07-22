@@ -30,6 +30,8 @@ class new_project:
     def create_project_folder(self):
         if not os.path.exists(self.location):
             os.makedirs(self.location)
+        if not os.path.exists(os.path.join(self.location, "pdf_figures")):
+            os.makedirs(os.path.join(self.location, "Pdf_Figures"))
             print("Folder Created")
 
     def create_geodatabase(self):
